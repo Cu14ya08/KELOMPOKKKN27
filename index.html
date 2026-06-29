@@ -342,6 +342,11 @@
                                 <i class="fa-solid fa-arrow-down"></i>
                                 <span>Catat Pengeluaran</span>
                             </button>
+                            <!-- NEW: EXCEL EXPORT BUTTON -->
+                            <button onclick="exportToExcel()" class="bg-teal-500 text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl hover:bg-teal-400 transition flex items-center space-x-1.5 shadow-md shadow-teal-500/10" title="Unduh File Kas format Microsoft Excel (.csv)">
+                                <i class="fa-solid fa-file-excel text-sm"></i>
+                                <span>Ekspor ke Excel</span>
+                            </button>
                         </div>
                     </div>
 
@@ -1339,7 +1344,7 @@
 
             if (window.isCloudReady && window.db) {
                 // Save to Cloud database (RULE 1 matching paths)
-                const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+                const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'kkn27-finance-v4';
                 
                 await setDoc(doc(window.db, 'artifacts', appId, 'public', 'data', 'members', id), updatedMember);
@@ -1546,6 +1551,78 @@
                 window.initAppViews();
                 showToast("Penyimpanan lokal berhasil dibersihkan!");
             }
+        }
+
+        // NEW: PREMIUM EXCEL CSV EXPORT FUNCTION
+        function exportToExcel() {
+            if (window.state.transactions.length === 0) {
+                showToast("Tidak ada data transaksi untuk diekspor!");
+                return;
+            }
+
+            // Membangun format CSV dengan pemisah semi-kolon (;) yang otomatis dikenali oleh regional Excel Indonesia
+            let csvContent = "\uFEFF"; // Menambahkan UTF-8 BOM agar terbaca rapi oleh Excel di Windows & MacOS
+
+            // Header Kop Surat
+            csvContent += "LAPORAN KAS BUKU BESAR PERTANGGUNGJAWABAN BENDAHARA\r\n";
+            csvContent += "KULIAH KERJA NYATA (KKN) KELOMPOK 27 UNIVERSITAS AL-GHIFARI\r\n";
+            csvContent += "Tanggal Ekspor;" + new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}) + "\r\n\r\n";
+
+            // Ringkasan Kas
+            const kas = calculateKasTotals();
+            csvContent += "1. RINGKASAN SALDO BERJALAN\r\n";
+            csvContent += "Sektor Ringkasan;Nominal (Rupiah)\r\n";
+            csvContent += `Total Akumulasi Pemasukan (Kredit);Rp ${kas.pemasukan.toLocaleString('id-ID')}\r\n`;
+            csvContent += `Total Akumulasi Pengeluaran (Debit);Rp ${kas.pengeluaran.toLocaleString('id-ID')}\r\n`;
+            csvContent += `Sisa Saldo Kas Bersih;Rp ${kas.saldo.toLocaleString('id-ID')}\r\n\r\n`;
+
+            // Rekap Per Kategori
+            csvContent += "2. REKAPITULASI PENGELUARAN PER SEKTOR KATEGORI\r\n";
+            csvContent += "Nama Kategori;Total Pengeluaran (Rupiah)\r\n";
+            const catSums = getCategorySummary();
+            const cats = ['Konsumsi', 'Transportasi', 'ATK', 'Dokumentasi', 'Program Kerja', 'Kesehatan', 'Lain-lain'];
+            cats.forEach(c => {
+                const totalExpense = catSums.pengeluaran[c] || 0;
+                csvContent += `${c};Rp ${totalExpense.toLocaleString('id-ID')}\r\n`;
+            });
+            csvContent += "\r\n";
+
+            // Rincian Jurnal
+            csvContent += "3. DETAIL JURNAL MUTASI BUKU KAS HARIAN\r\n";
+            csvContent += "Nomor Transaksi;Tanggal;Deskripsi / Detail Transaksi;Kategori;Nomor Bukti (Nota);Debit (Pemasukan);Kredit (Pengeluaran);Saldo Berjalan\r\n";
+
+            let runningBalance = 0;
+            // Urutkan transaksi secara kronologis
+            const chronTrx = [...window.state.transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            chronTrx.forEach(t => {
+                const debit = t.type === 'Pemasukan' ? t.amount : 0;
+                const kredit = t.type === 'Pengeluaran' ? t.amount : 0;
+                
+                if (t.type === 'Pemasukan') {
+                    runningBalance += t.amount;
+                } else {
+                    runningBalance -= t.amount;
+                }
+
+                // Amankan isi string agar tidak merusak kolom Excel
+                const safeDesc = t.description.replace(/;/g, ',');
+                const safeReceipt = (t.receiptNo || "-").replace(/;/g, ',');
+
+                csvContent += `${t.id};${t.date};"${safeDesc}";${t.category};"${safeReceipt}";${debit};${kredit};${runningBalance}\r\n`;
+            });
+
+            // Trigger download file di browser
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "Laporan_Kas_KKN27_AlGhifari.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast("Sukses! File Excel berhasil diunduh.");
         }
 
         function renderCharts(kas, categories) {
