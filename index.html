@@ -557,15 +557,16 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs text-slate-500 font-semibold mb-1">Divisi KKN Kelompok</label>
+                    <label class="block text-xs text-slate-500 font-semibold mb-1">Divisi & Jurusan</label>
                     <select id="editMemberDivision" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-xl px-3 py-2.5 focus:outline-none">
-                        <option value="Ketua / Wakil">Ketua / Wakil Kelompok</option>
-                        <option value="Bendahara">Bendahara Kelompok</option>
-                        <option value="Sekretaris">Sekretaris Kelompok</option>
-                        <option value="Divisi Acara & Program Kerja">Divisi Acara & Program Kerja</option>
-                        <option value="Divisi Logistik & Konsumsi">Divisi Logistik & Konsumsi</option>
-                        <option value="Divisi Humas & Dokumentasi">Divisi Humas & Dokumentasi</option>
-                        <option value="Divisi PDD & Dokumentasi">Divisi PDD & Dokumentasi</option>
+                        <option value="Ketua - Farmasi">Ketua - Farmasi</option>
+                        <option value="Sekretaris - TP">Sekretaris - TP</option>
+                        <option value="Bendahara - SI">Bendahara - SI</option>
+                        <option value="Humas - Farmasi">Humas - Farmasi</option>
+                        <option value="Humas - Sasing">Humas - Sasing</option>
+                        <option value="Acara - Manajemen">Acara - Manajemen</option>
+                        <option value="Acara - AN">Acara - AN</option>
+                        <option value="PDD - AN">PDD - AN</option>
                     </select>
                 </div>
                 <div class="bg-teal-50 p-4 rounded-xl border border-teal-100">
@@ -661,8 +662,7 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase / Firestore environment integration
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'kkn27-finance-realtime';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'kkn27-finance-v4';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
@@ -774,7 +774,7 @@
         }
 
         function initLocalAppState() {
-            const localData = localStorage.getItem('kkn27_finance_state');
+            const localData = localStorage.getItem('kkn27_finance_state_v4');
             if (localData) {
                 window.state = JSON.parse(localData);
             } else {
@@ -782,7 +782,7 @@
                     members: JSON.parse(JSON.stringify(window.defaultMembers)),
                     transactions: JSON.parse(JSON.stringify(window.defaultTransactions))
                 };
-                localStorage.setItem('kkn27_finance_state', JSON.stringify(window.state));
+                localStorage.setItem('kkn27_finance_state_v4', JSON.stringify(window.state));
             }
             window.initAppViews();
         }
@@ -804,16 +804,16 @@
         const TARGET_IURAN = 1500000;
 
         window.defaultMembers = [
-            { id: "M001", name: "Tazakka Syahrul", nim: "D1A230150", phone: "0812-xxxx-xxxx", division: "Ketua / Wakil", paidAmount: 1500000 },
-            { id: "M002", name: "Vina Tiara Annisa", nim: "E1A230004", phone: "0821-xxxx-xxxx", division: "Sekretaris", paidAmount: 1500000 },
-            { id: "M003", name: "Surya Padli", nim: "234260007", phone: "0857-xxxx-xxxx", division: "Bendahara", paidAmount: 1500000 },
-            { id: "M004", name: "Adisty Fazria", nim: "D1A230158", phone: "0819-xxxx-xxxx", division: "Divisi Humas & Dokumentasi", paidAmount: 1000000 },
-            { id: "M005", name: "Iyan Hardiansyah", nim: "A1A230003", phone: "0813-xxxx-xxxx", division: "Divisi Humas & Dokumentasi", paidAmount: 1500000 },
-            { id: "M006", name: "Sindy Selanisa", nim: "B1A230024", phone: "0838-xxxx-xxxx", division: "Divisi Acara & Program Kerja", paidAmount: 500000 },
-            { id: "M007", name: "Adinda Sevtynova DP", nim: "B1A230033", phone: "0812-xxxx-xxxx", division: "Divisi Acara & Program Kerja", paidAmount: 1500000 },
-            { id: "M008", name: "Dera Ammelia", nim: "C1B230012", phone: "0822-xxxx-xxxx", division: "Divisi Acara & Program Kerja", paidAmount: 1000000 },
-            { id: "M009", name: "Dian Hermansyah", nim: "C1B230048", phone: "0856-xxxx-xxxx", division: "Divisi Acara & Program Kerja", paidAmount: 1500000 },
-            { id: "M010", name: "M. Rian Maulana", nim: "C1B230098", phone: "0895-xxxx-xxxx", division: "Divisi PDD & Dokumentasi", paidAmount: 0 }
+            { id: "M001", name: "Tazakka Syahrul", nim: "D1A230150", phone: "0812-xxxx-xxxx", division: "Ketua - Farmasi", paidAmount: 1500000 },
+            { id: "M002", name: "Vina Tiara Annisa", nim: "E1A230004", phone: "0821-xxxx-xxxx", division: "Sekretaris - TP", paidAmount: 1500000 },
+            { id: "M003", name: "Surya Padli", nim: "234260007", phone: "0857-xxxx-xxxx", division: "Bendahara - SI", paidAmount: 1500000 },
+            { id: "M004", name: "Adisty Fazria", nim: "D1A230158", phone: "0819-xxxx-xxxx", division: "Humas - Farmasi", paidAmount: 1000000 },
+            { id: "M005", name: "Iyan Hardiansyah", nim: "A1A230003", phone: "0813-xxxx-xxxx", division: "Humas - Sasing", paidAmount: 1500000 },
+            { id: "M006", name: "Sindy Selanisa", nim: "B1A230024", phone: "0838-xxxx-xxxx", division: "Acara - Manajemen", paidAmount: 500000 },
+            { id: "M007", name: "Adinda Sevtynova DP", nim: "B1A230033", phone: "0812-xxxx-xxxx", division: "Acara - Manajemen", paidAmount: 1500000 },
+            { id: "M008", name: "Dera Ammelia", nim: "C1B230012", phone: "0822-xxxx-xxxx", division: "Acara - AN", paidAmount: 1000000 },
+            { id: "M009", name: "Dian Hermansyah", nim: "C1B230048", phone: "0856-xxxx-xxxx", division: "Acara - AN", paidAmount: 1500000 },
+            { id: "M010", name: "M. Rian Maulana", nim: "C1B230098", phone: "0895-xxxx-xxxx", division: "PDD - AN", paidAmount: 0 }
         ];
 
         window.defaultTransactions = [
@@ -1337,7 +1337,7 @@
             if (window.isCloudReady && window.db) {
                 // Save to Cloud database (RULE 1 matching paths)
                 const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'kkn27-finance-realtime';
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'kkn27-finance-v4';
                 
                 await setDoc(doc(window.db, 'artifacts', appId, 'public', 'data', 'members', id), updatedMember);
                 if (correctionTrx) {
@@ -1350,7 +1350,7 @@
                 if (correctionTrx) {
                     window.state.transactions.push(correctionTrx);
                 }
-                localStorage.setItem('kkn27_finance_state', JSON.stringify(window.state));
+                localStorage.setItem('kkn27_finance_state_v4', JSON.stringify(window.state));
                 window.initAppViews();
                 showToast(`Data lokal ${name} diperbarui.`);
             }
@@ -1437,7 +1437,7 @@
 
             if (window.isCloudReady && window.db) {
                 const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'kkn27-finance-realtime';
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'kkn27-finance-v4';
 
                 await setDoc(doc(window.db, 'artifacts', appId, 'public', 'data', 'transactions', id), newTrx);
                 if (memberToUpdate) {
@@ -1450,7 +1450,7 @@
                     const mIdx = window.state.members.findIndex(m => m.id === linkedMemberId);
                     window.state.members[mIdx] = memberToUpdate;
                 }
-                localStorage.setItem('kkn27_finance_state', JSON.stringify(window.state));
+                localStorage.setItem('kkn27_finance_state_v4', JSON.stringify(window.state));
                 window.initAppViews();
                 showToast(`Mutasi lokal ${id} tercatat.`);
             }
@@ -1476,7 +1476,7 @@
 
             if (window.isCloudReady && window.db) {
                 const { doc, deleteDoc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'kkn27-finance-realtime';
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'kkn27-finance-v4';
 
                 await deleteDoc(doc(window.db, 'artifacts', appId, 'public', 'data', 'transactions', id));
                 if (memberToRollback) {
@@ -1489,7 +1489,7 @@
                     const mIdx = window.state.members.findIndex(m => m.id === t.memberId);
                     window.state.members[mIdx] = memberToRollback;
                 }
-                localStorage.setItem('kkn27_finance_state', JSON.stringify(window.state));
+                localStorage.setItem('kkn27_finance_state_v4', JSON.stringify(window.state));
                 window.initAppViews();
                 showToast("Transaksi lokal berhasil dihapus.");
             }
@@ -1498,7 +1498,7 @@
         async function resetToDemoData() {
             if (window.isCloudReady && window.db) {
                 const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'kkn27-finance-realtime';
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'kkn27-finance-v4';
 
                 showToast("Merestart database awan...");
                 const batchPromises = [];
@@ -1520,7 +1520,7 @@
                     members: JSON.parse(JSON.stringify(window.defaultMembers)),
                     transactions: JSON.parse(JSON.stringify(window.defaultTransactions))
                 };
-                localStorage.setItem('kkn27_finance_state', JSON.stringify(window.state));
+                localStorage.setItem('kkn27_finance_state_v4', JSON.stringify(window.state));
                 window.initAppViews();
                 showToast("Data lokal berhasil direset.");
             }
