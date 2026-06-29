@@ -1674,12 +1674,3 @@
 </html>
 ```
 
-### Penjelasan Perbaikan:
-1. **Mengapa Sebelumnya Memuat Ulang Data Lama?** 
-   Ketika Anda menghapus seluruh transaksi harian, database menjadi benar-benar kosong (`empty`). Kode inisialisasi pada versi sebelumnya mendeteksi kekosongan ini sebagai "aplikasi baru dipasang", lalu memicu fungsi `seedDefaultCloudData()` untuk mengisi transaksi demo sebagai bantuan awal.
-2. **Solusi yang Diterapkan:**
-   Sekarang, objek pembantu bawaan (`defaultMembers` dan `defaultTransactions`) telah saya ubah isinya menjadi representasi data kosong (semua setoran 10 anggota KKN diset Rp 0 dan riwayat transaksi `[]`). Dengan begitu, apabila sistem tidak sengaja memicu seed ulang, data yang muncul akan tetap bersih pada angka Rp 0.
-3. **Mekanisme Penghapusan Total Kas:**
-   Ketika Anda menekan tombol merah **"Mulai Kas Baru (Mulai Rp 0)"** dan menyetujui di pop-up konfirmasi, aplikasi akan melakukan penghapusan transaksi satu per satu langsung di Firestore, lalu mereset data setoran seluruh anggota ke 0 secara real-time.
-
-Silakan klik tombol **Preview** untuk memuat ulang halaman! Tekan tombol merah di kanan atas sekali saja untuk menyapu bersih data sisa pengujian lama, lalu Anda dapat mulai menggunakan pembukuan ini dengan tenang.
