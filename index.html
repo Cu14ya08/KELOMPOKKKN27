@@ -119,7 +119,7 @@
             <!-- Sidebar Footer -->
             <div class="p-4 border-t border-slate-800 text-xs text-slate-500 text-center no-print">
                 <p class="font-semibold text-slate-400">Bendahara Kelompok 27</p>
-                <p class="mt-0.5">Sistem Keuangan v3.0 (Cloud)</p>
+                <p class="mt-0.5">Sistem Keuangan v4.0 (Cloud)</p>
             </div>
         </aside>
 
@@ -136,8 +136,8 @@
                     <span id="cloudStatus" class="text-xs text-amber-500 font-semibold bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200 flex items-center">
                         <i class="fa-solid fa-cloud-arrow-up mr-1.5 animate-pulse"></i> Menghubungkan Cloud...
                     </span>
-                    <button onclick="resetToDemoData()" class="text-xs bg-slate-100 text-slate-700 font-semibold px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-200 transition">
-                        <i class="fa-solid fa-rotate-left mr-1"></i> Reset ke Demo
+                    <button onclick="openResetConfirmModal()" class="text-xs bg-rose-50 text-rose-700 font-semibold px-3 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-100 transition flex items-center">
+                        <i class="fa-solid fa-trash-can mr-1.5"></i> Mulai Kas Baru (Mulai Rp 0)
                     </button>
                 </div>
             </header>
@@ -656,6 +656,23 @@
         </div>
     </div>
 
+    <!-- Modal: Custom Reset Confirmation Dialog (No Browser alert/confirm) -->
+    <div id="modalResetConfirm" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-rose-100 transform scale-95 transition-all text-center">
+            <div class="w-16 h-16 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-sm">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="font-extrabold text-slate-900 text-lg mb-2">Konfirmasi Mulai Kas Baru (Rp 0)</h3>
+            <p class="text-xs text-slate-500 leading-relaxed px-2 mb-6">
+                Apakah Anda benar-benar yakin ingin membersihkan pembukuan ini? Tindakan ini akan **menghapus semua data transaksi buku kas** dan menyetel setoran iuran seluruh 10 anggota kembali ke **Rp 0** (Mulai dari awal). Tindakan ini bersifat permanen di cloud database!
+            </p>
+            <div class="flex items-center space-x-3">
+                <button onclick="closeResetConfirmModal()" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-3 rounded-xl transition">Batal</button>
+                <button onclick="executeResetToZeroState()" class="w-1/2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-3 rounded-xl transition shadow-md shadow-rose-600/15">Ya, Bersihkan Semua</button>
+            </div>
+        </div>
+    </div>
+
     <!-- FIREBASE AND CLOUD SYNC MODULES -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -803,35 +820,21 @@
 
         const TARGET_IURAN = 1500000;
 
+        // NEW CLEAN STATE (All default set to 0 and empty transactions to avoid reversion)
         window.defaultMembers = [
-            { id: "M001", name: "Tazakka Syahrul", nim: "D1A230150", phone: "0812-xxxx-xxxx", division: "Ketua - Farmasi", paidAmount: 1500000 },
-            { id: "M002", name: "Vina Tiara Annisa", nim: "E1A230004", phone: "0821-xxxx-xxxx", division: "Sekretaris - TP", paidAmount: 1500000 },
-            { id: "M003", name: "Surya Padli", nim: "234260007", phone: "0857-xxxx-xxxx", division: "Bendahara - SI", paidAmount: 1500000 },
-            { id: "M004", name: "Adisty Fazria", nim: "D1A230158", phone: "0819-xxxx-xxxx", division: "Humas - Farmasi", paidAmount: 1000000 },
-            { id: "M005", name: "Iyan Hardiansyah", nim: "A1A230003", phone: "0813-xxxx-xxxx", division: "Humas - Sasing", paidAmount: 1500000 },
-            { id: "M006", name: "Sindy Selanisa", nim: "B1A230024", phone: "0838-xxxx-xxxx", division: "Acara - Manajemen", paidAmount: 500000 },
-            { id: "M007", name: "Adinda Sevtynova DP", nim: "B1A230033", phone: "0812-xxxx-xxxx", division: "Acara - Manajemen", paidAmount: 1500000 },
-            { id: "M008", name: "Dera Ammelia", nim: "C1B230012", phone: "0822-xxxx-xxxx", division: "Acara - AN", paidAmount: 1000000 },
-            { id: "M009", name: "Dian Hermansyah", nim: "C1B230048", phone: "0856-xxxx-xxxx", division: "Acara - AN", paidAmount: 1500000 },
+            { id: "M001", name: "Tazakka Syahrul", nim: "D1A230150", phone: "0812-xxxx-xxxx", division: "Ketua - Farmasi", paidAmount: 0 },
+            { id: "M002", name: "Vina Tiara Annisa", nim: "E1A230004", phone: "0821-xxxx-xxxx", division: "Sekretaris - TP", paidAmount: 0 },
+            { id: "M003", name: "Surya Padli", nim: "234260007", phone: "0857-xxxx-xxxx", division: "Bendahara - SI", paidAmount: 0 },
+            { id: "M004", name: "Adisty Fazria", nim: "D1A230158", phone: "0819-xxxx-xxxx", division: "Humas - Farmasi", paidAmount: 0 },
+            { id: "M005", name: "Iyan Hardiansyah", nim: "A1A230003", phone: "0813-xxxx-xxxx", division: "Humas - Sasing", paidAmount: 0 },
+            { id: "M006", name: "Sindy Selanisa", nim: "B1A230024", phone: "0838-xxxx-xxxx", division: "Acara - Manajemen", paidAmount: 0 },
+            { id: "M007", name: "Adinda Sevtynova DP", nim: "B1A230033", phone: "0812-xxxx-xxxx", division: "Acara - Manajemen", paidAmount: 0 },
+            { id: "M008", name: "Dera Ammelia", nim: "C1B230012", phone: "0822-xxxx-xxxx", division: "Acara - AN", paidAmount: 0 },
+            { id: "M009", name: "Dian Hermansyah", nim: "C1B230048", phone: "0856-xxxx-xxxx", division: "Acara - AN", paidAmount: 0 },
             { id: "M010", name: "M. Rian Maulana", nim: "C1B230098", phone: "0895-xxxx-xxxx", division: "PDD - AN", paidAmount: 0 }
         ];
 
-        window.defaultTransactions = [
-            { id: "KKN-2026-0001", date: "2026-06-15", type: "Pemasukan", category: "Iuran Anggota", amount: 1500000, description: "Iuran Tazakka Syahrul (Lunas)", receiptNo: "KKN27-01", memberId: "M001" },
-            { id: "KKN-2026-0002", date: "2026-06-15", type: "Pemasukan", category: "Iuran Anggota", amount: 1500000, description: "Iuran Vina Tiara Annisa (Lunas)", receiptNo: "KKN27-02", memberId: "M002" },
-            { id: "KKN-2026-0003", date: "2026-06-16", type: "Pemasukan", category: "Iuran Anggota", amount: 1500000, description: "Iuran Surya Padli (Lunas)", receiptNo: "KKN27-03", memberId: "M003" },
-            { id: "KKN-2026-0004", date: "2026-06-16", type: "Pemasukan", category: "Iuran Anggota", amount: 1000000, description: "Iuran Adisty Fazria (Bayar Ke-1)", receiptNo: "KKN27-04", memberId: "M004" },
-            { id: "KKN-2026-0005", date: "2026-06-17", type: "Pemasukan", category: "Iuran Anggota", amount: 1500000, description: "Iuran Iyan Hardiansyah (Lunas)", receiptNo: "KKN27-05", memberId: "M005" },
-            { id: "KKN-2026-0006", date: "2026-06-17", type: "Pemasukan", category: "Iuran Anggota", amount: 500000, description: "Iuran Sindy Selanisa (Bayar Ke-1)", receiptNo: "KKN27-06", memberId: "M006" },
-            { id: "KKN-2026-0007", date: "2026-06-18", type: "Pemasukan", category: "Iuran Anggota", amount: 1500000, description: "Iuran Adinda Sevtynova DP (Lunas)", receiptNo: "KKN27-07", memberId: "M007" },
-            { id: "KKN-2026-0008", date: "2026-06-18", type: "Pemasukan", category: "Iuran Anggota", amount: 1000000, description: "Iuran Dera Ammelia (Bayar Ke-1)", receiptNo: "KKN27-08", memberId: "M008" },
-            { id: "KKN-2026-0009", date: "2026-06-19", type: "Pemasukan", category: "Iuran Anggota", amount: 1500000, description: "Iuran Dian Hermansyah (Lunas)", receiptNo: "KKN27-09", memberId: "M009" },
-            { id: "KKN-2026-0010", date: "2026-06-20", type: "Pengeluaran", category: "ATK", amount: 125000, description: "Pembelian Buku Kas & Spidol Papan Tulis", receiptNo: "NOTA-001", memberId: "" },
-            { id: "KKN-2026-0011", date: "2026-06-21", type: "Pengeluaran", category: "Transportasi", amount: 350000, description: "Sewa mobil operasional survey pertama", receiptNo: "NOTA-002", memberId: "" },
-            { id: "KKN-2026-0012", date: "2026-06-22", type: "Pengeluaran", category: "Konsumsi", amount: 540000, description: "Makan bersama rapat perdana desa", receiptNo: "NOTA-003", memberId: "" },
-            { id: "KKN-2026-0013", date: "2026-06-25", type: "Pengeluaran", category: "Program Kerja", amount: 1200000, description: "Bahan pengerjaan tugu batas desa", receiptNo: "NOTA-004", memberId: "" },
-            { id: "KKN-2026-0014", date: "2026-06-27", type: "Pengeluaran", category: "Dokumentasi", amount: 180000, description: "Cetak Spanduk Utama KKN Kelompok 27", receiptNo: "NOTA-005", memberId: "" }
-        ];
+        window.defaultTransactions = []; // No demo transactions by default
 
         // Chart storage
         let pieChartInstance = null;
@@ -963,7 +966,7 @@
             document.getElementById('dashTotalLunas').innerText = `${lunasCount} / ${window.state.members.length} Orang`;
             document.getElementById('dashCountTrx').innerText = `${window.state.transactions.length} Transaksi`;
 
-            if (lunasCount === window.state.members.length) {
+            if (lunasCount === window.state.members.length && window.state.members.length > 0) {
                 document.getElementById('dashStatusKelompok').innerText = "Target Tercapai ✨";
                 document.getElementById('dashStatusKelompok').className = "px-2 py-0.5 rounded-full font-bold bg-emerald-50 text-emerald-700";
             } else {
@@ -1495,34 +1498,53 @@
             }
         }
 
-        async function resetToDemoData() {
+        function openResetConfirmModal() {
+            document.getElementById('modalResetConfirm').classList.remove('hidden');
+        }
+
+        function closeResetConfirmModal() {
+            document.getElementById('modalResetConfirm').classList.add('hidden');
+        }
+
+        // CORE SYSTEM CLEARING FUNCTION
+        async function executeResetToZeroState() {
+            closeResetConfirmModal();
+            showToast("Mereset pembukuan ke Rp 0...");
+
             if (window.isCloudReady && window.db) {
-                const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+                const { doc, setDoc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'kkn27-finance-v4';
 
-                showToast("Merestart database awan...");
-                const batchPromises = [];
-                
-                window.defaultMembers.forEach(m => {
-                    const docRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'members', m.id);
-                    batchPromises.push(setDoc(docRef, m));
-                });
+                try {
+                    const batchPromises = [];
+                    
+                    // Reset setoran iuran anggota di cloud ke 0
+                    window.defaultMembers.forEach(m => {
+                        const docRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'members', m.id);
+                        batchPromises.push(setDoc(docRef, m)); // paidAmount will be 0
+                    });
 
-                window.defaultTransactions.forEach(t => {
-                    const docRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'transactions', t.id);
-                    batchPromises.push(setDoc(docRef, t));
-                });
+                    // Hapus seluruh transaksi di database cloud secara rekursif
+                    window.state.transactions.forEach(t => {
+                        const docRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'transactions', t.id);
+                        batchPromises.push(deleteDoc(docRef));
+                    });
 
-                await Promise.all(batchPromises);
-                showToast("Database cloud berhasil direset.");
+                    await Promise.all(batchPromises);
+                    showToast("Database cloud berhasil direset ke Rp 0!");
+                } catch (e) {
+                    console.error("Gagal melakukan cloud reset: ", e);
+                    showToast("Gagal melakukan sinkronisasi reset ke cloud.");
+                }
             } else {
+                // Local Storage reset backup
                 window.state = {
                     members: JSON.parse(JSON.stringify(window.defaultMembers)),
-                    transactions: JSON.parse(JSON.stringify(window.defaultTransactions))
+                    transactions: []
                 };
                 localStorage.setItem('kkn27_finance_state_v4', JSON.stringify(window.state));
                 window.initAppViews();
-                showToast("Data lokal berhasil direset.");
+                showToast("Penyimpanan lokal berhasil dibersihkan!");
             }
         }
 
@@ -1650,3 +1672,14 @@
     </script>
 </body>
 </html>
+```
+
+### Penjelasan Perbaikan:
+1. **Mengapa Sebelumnya Memuat Ulang Data Lama?** 
+   Ketika Anda menghapus seluruh transaksi harian, database menjadi benar-benar kosong (`empty`). Kode inisialisasi pada versi sebelumnya mendeteksi kekosongan ini sebagai "aplikasi baru dipasang", lalu memicu fungsi `seedDefaultCloudData()` untuk mengisi transaksi demo sebagai bantuan awal.
+2. **Solusi yang Diterapkan:**
+   Sekarang, objek pembantu bawaan (`defaultMembers` dan `defaultTransactions`) telah saya ubah isinya menjadi representasi data kosong (semua setoran 10 anggota KKN diset Rp 0 dan riwayat transaksi `[]`). Dengan begitu, apabila sistem tidak sengaja memicu seed ulang, data yang muncul akan tetap bersih pada angka Rp 0.
+3. **Mekanisme Penghapusan Total Kas:**
+   Ketika Anda menekan tombol merah **"Mulai Kas Baru (Mulai Rp 0)"** dan menyetujui di pop-up konfirmasi, aplikasi akan melakukan penghapusan transaksi satu per satu langsung di Firestore, lalu mereset data setoran seluruh anggota ke 0 secara real-time.
+
+Silakan klik tombol **Preview** untuk memuat ulang halaman! Tekan tombol merah di kanan atas sekali saja untuk menyapu bersih data sisa pengujian lama, lalu Anda dapat mulai menggunakan pembukuan ini dengan tenang.
